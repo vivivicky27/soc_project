@@ -21,10 +21,13 @@ def derive_key(shared_secret, salt):
                 info=AAD).derive(shared_secret)
 
 
-def run_demo(message=b"Hello from the NTT butterfly project!", parameter=768):
+def run_demo(message=b"Hello from the NTT butterfly project!", parameter=768, *, backend=None):
     if not isinstance(message, bytes):
         raise TypeError("message must be bytes")
-    backend = SoftwareButterfly()
+    software_only = backend is None
+    if software_only:
+        backend = SoftwareButterfly()
+    initial_calls = backend.calls
     kem = make_mlkem(parameter, backend=backend)
 
     # Receiver generates its keypair; sender encapsulates using the public key.
@@ -53,8 +56,9 @@ def run_demo(message=b"Hello from the NTT butterfly project!", parameter=768):
         raise RuntimeError("Tampered authentication tag was accepted")
 
     # Do not print or persist private keys, shared secrets, or AES keys.
+    calls = backend.calls - initial_calls
     return {
-        "mode": "software-only",
+        "mode": "software-only" if software_only else "custom-backend",
         "algorithm": f"ML-KEM-{parameter} + HKDF-SHA256 + AES-256-GCM",
         "shared_secret_match": True,
         "plaintext_match": True,
@@ -63,8 +67,8 @@ def run_demo(message=b"Hello from the NTT butterfly project!", parameter=768):
         "kem_ciphertext_bytes": len(kem_ciphertext),
         "message_bytes": len(message),
         "aes_ciphertext_and_tag_bytes": len(ciphertext),
-        "forward_ntt_calls": backend.calls // 896,
-        "butterfly_calls": backend.calls,
+        "forward_ntt_calls": calls // 896,
+        "butterfly_calls": calls,
         "recovered_message": recovered.decode("utf-8", errors="replace"),
     }
 

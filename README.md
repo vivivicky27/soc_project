@@ -137,7 +137,7 @@ make sim-gate  # 用 Python 向量验证综合后的标准单元网表
 布局布线、最终时序签核和功耗分析尚未完成。
 本模块不包含完整 NTT 的存储、旋转因子表和调度；这些仍由外部软件负责。
 
-## E0 and E1 RTL variants (hy3281)
+## E0, E1, and E2 RTL variants (hy3281)
 
 The independent `butterfly_e0_hy3281` and `butterfly_e1_hy3281` modules are in
 `rtl/`. Both accept a valid input on every clock and keep `in_ready` high.
@@ -147,3 +147,33 @@ three rising edges after the accepting edge and can sustain one result per cycle
 Run their VCS testbenches with `make sim-hy3281`, or run
 `make sim-e0-hy3281` and `make sim-e1-hy3281` individually. Outputs are under
 `build/e0_hy3281/` and `build/e1_hy3281/`.
+
+E2 keeps the E1 interface and pipeline latency and replaces the reduction
+operator with a Barrett reduction specialized for 3329. For the 24-bit
+product, `floor(product * 20158 / 2^26)` equals the true quotient or is one
+smaller. A single conditional subtraction normalizes the residual.
+`make sim-e2-hy3281` runs the same pipeline checks against E2.
+
+### Running on the course ECS host
+
+```sh
+make sim-hy3281 software-check
+make cosim-e1-hy3281 cosim-e2-hy3281
+make synth-hy3281
+make route-e0-hy3281 route-e1-hy3281 route-e2-hy3281
+python3 physical/signoff.py drc build/physical_e0 butterfly_e0_hy3281
+python3 physical/signoff.py lvs build/physical_e0 butterfly_e0_hy3281
+```
+
+Co-simulation starts one VCS process per run and sends each butterfly request
+to RTL. It checks all 256 NTT coefficients before running the ML-KEM/AES-GCM
+demo through the same backend. Wall time includes simulator and pipe overhead.
+The request/response driver issues one request at a time. The separate VCS
+testbenches exercise back-to-back inputs.
+
+Synthesis reports are under `build/synth_e{0,1,2}/reports/`. The Innovus
+targets use the same SDC and floorplan for all three variants. Each physical
+build directory holds its routed database, DEF, netlist, GDS, setup and hold
+reports, and Innovus DRC and connectivity reports. The two Calibre commands
+can be repeated for E1 and E2. Inspect the rule counts and LVS comparison in
+`DRC.rep` and `lvs.rep` before reporting signoff.

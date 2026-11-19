@@ -39,10 +39,30 @@ sim:
 clean:
 	rm -rf build
 
-.PHONY: sim-hy3281 sim-e0-hy3281 sim-e1-hy3281
-sim-hy3281: sim-e0-hy3281 sim-e1-hy3281
+.PHONY: sim-hy3281 sim-e0-hy3281 sim-e1-hy3281 sim-e2-hy3281
+sim-hy3281: sim-e0-hy3281 sim-e1-hy3281 sim-e2-hy3281
 
-sim-e0-hy3281 sim-e1-hy3281: sim-%-hy3281:
+sim-e0-hy3281 sim-e1-hy3281 sim-e2-hy3281: sim-%-hy3281:
 	mkdir -p build/$*_hy3281
 	cd build/$*_hy3281 && vcs -full64 -sverilog -top tb_butterfly_$*_hy3281 ../../rtl/butterfly_$*_hy3281.sv ../../tb/tb_butterfly_$*_hy3281.sv -o simv -l compile.log
 	cd build/$*_hy3281 && ./simv -l simulation.log
+
+.PHONY: cosim-e1-hy3281 cosim-e2-hy3281 synth-hy3281
+cosim-e1-hy3281 cosim-e2-hy3281: cosim-%-hy3281:
+	mkdir -p build/cosim_$*
+	cd build/cosim_$* && vcs -full64 -sverilog +define+BUTTERFLY_DUT=butterfly_$*_hy3281 -top butterfly_cosim_tb ../../rtl/butterfly_$*_hy3281.sv ../../tb/butterfly_cosim_tb.sv -o simv -l compile.log
+	timeout 120s $(PYTHON) software/rtl_cosim.py build/cosim_$*/simv
+
+synth-hy3281:
+	for variant in e0 e1 e2; do \
+	    mkdir -p build/synth_$$variant && \
+	    (cd build/synth_$$variant && BUTTERFLY_TOP=butterfly_$${variant}_hy3281 $(DC_SHELL) -f ../../synth/run.tcl -output_log_file synthesis.log) && \
+	    test -s build/synth_$$variant/netlist/butterfly_$${variant}_hy3281_mapped.v || exit 1; \
+	done
+
+.PHONY: route-e0-hy3281 route-e1-hy3281 route-e2-hy3281
+route-e0-hy3281 route-e1-hy3281 route-e2-hy3281: route-%-hy3281:
+	test -s build/synth_$*/netlist/butterfly_$*_hy3281_mapped.v
+	mkdir -p build/physical_$*
+	cd build/physical_$* && BUTTERFLY_NETLIST=../synth_$*/netlist/butterfly_$*_hy3281_mapped.v innovus -stylus -no_gui -files ../../physical/run.tcl -log innovus
+	test -s build/physical_$*/routed.gds

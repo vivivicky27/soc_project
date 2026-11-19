@@ -15,9 +15,13 @@ set_app_var target_library [list $lib_file]
 set_app_var link_library [concat * $target_library]
 define_design_lib WORK -path ./work
 
-if {![analyze -format sverilog $project_dir/rtl/ntt_butterfly.sv]} {exit 1}
-if {[elaborate ntt_butterfly] == ""} {exit 1}
-current_design ntt_butterfly
+set top ntt_butterfly
+if {[info exists env(BUTTERFLY_TOP)]} {
+    set top $env(BUTTERFLY_TOP)
+}
+if {![analyze -format sverilog $project_dir/rtl/${top}.sv]} {exit 1}
+if {[elaborate $top] == ""} {exit 1}
+current_design $top
 if {![link]} {exit 1}
 redirect reports/units.rpt {report_units}
 redirect reports/library.rpt {report_lib [get_object_name [get_libs *]]}
@@ -42,8 +46,8 @@ redirect reports/timing_hold.rpt {report_timing -delay_type min -max_paths 10 -i
 redirect reports/constraints.rpt {report_constraint -all_violators}
 redirect reports/qor.rpt {report_qor}
 redirect reports/clocks.rpt {report_clock}
-write -format verilog -hierarchy -output netlist/ntt_butterfly_mapped.v
-write -format ddc -hierarchy -output netlist/ntt_butterfly.ddc
-write_sdc netlist/ntt_butterfly.sdc
+write -format verilog -hierarchy -output netlist/${top}_mapped.v
+write -format ddc -hierarchy -output netlist/${top}.ddc
+write_sdc netlist/${top}.sdc
 puts "SYNTHESIS_FINISHED: inspect reports for timing/design violations."
 exit 0
