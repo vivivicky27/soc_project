@@ -60,7 +60,16 @@ proc implement {} {
     add_stripes -nets {VDD VSS} -layer M5 -direction vertical -area $core -width 0.20 -spacing 0.50 -set_to_set_distance 18 -start_from left -start_offset 9
     route_special -connect corePin -nets {VDD VSS}
 
-    place_design -no_pre_place_opt
+    # The fallback runs floorplan-mode placement and legalization separately
+    # on hosts that cannot allocate memory for pre-route timing during placement.
+    if {[info exists ::env(BUTTERFLY_FLOORPLAN_PLACE)]} {
+        set_db place_design_floorplan_mode true
+        place_design -no_pre_place_opt
+        set_db place_design_floorplan_mode false
+        place_detail
+    } else {
+        place_design -no_pre_place_opt
+    }
     set_db cts_use_inverters true
     clock_design
     foreach supply {VDD VSS} {

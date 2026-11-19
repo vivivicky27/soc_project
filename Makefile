@@ -67,6 +67,13 @@ route-e0-hy3281 route-e1-hy3281 route-e2-hy3281: route-%-hy3281:
 	cd build/physical_$* && BUTTERFLY_NETLIST=../synth_$*/netlist/butterfly_$*_hy3281_mapped.v innovus -stylus -no_gui -files ../../physical/run.tcl -log innovus
 	test -s build/physical_$*/routed.gds
 
+.PHONY: route-e1-recovery-hy3281
+route-e1-recovery-hy3281:
+	test -s build/synth_e1/netlist/butterfly_e1_hy3281_mapped.v
+	mkdir -p build/physical_e1_recovery
+	cd build/physical_e1_recovery && BUTTERFLY_FLOORPLAN_PLACE=1 BUTTERFLY_NETLIST=../synth_e1/netlist/butterfly_e1_hy3281_mapped.v innovus -stylus -no_gui -files ../../physical/run.tcl -log innovus
+	test -s build/physical_e1_recovery/routed.gds
+
 .PHONY: probe-pg-e0-hy3281
 probe-pg-e0-hy3281:
 	test -d build/physical_e0/routed

@@ -41,20 +41,24 @@ under those constraints. The measurements precede placement and routing.
 
 ## Routed implementations
 
-Innovus exported DEF, GDS and physical Verilog for E0 and E2. The timing view
-uses TT cell timing and the course worst-RC Quantus model.
+Innovus exported DEF, GDS and physical Verilog for all three variants. The
+timing view uses TT cell timing and the course worst-RC Quantus model. E1 used
+floorplan-mode placement followed by separate legalization after the default
+timing-driven placement repeatedly hit the host memory limit. E1's physical
+results therefore use different placement settings from E0 and E2.
 
 | Version | Post-route cell area (µm²) | Setup WNS (ns) | Hold WNS (ns) | Violating paths |
 |---|---:|---:|---:|---:|
 | E0 | 507.514 | +4.407 | +0.011 | 0 |
+| E1 (recovery placement) | 758.212 | +7.339 | +0.021 | 0 |
 | E2 | 880.917 | +7.633 | +0.020 | 0 |
 
 | Physical check | Result |
 |---|---|
-| Innovus full-design DRC | E0 and E2 each reached the 1,000-marker report limit. The listed E0 markers were M5 minimum-step violations on power routing |
+| Innovus full-design DRC | Each version reached the 1,000-marker report limit. The listed E0 markers were M5 minimum-step violations on power routing |
 | Innovus connectivity | 356 disconnected terminals, 6 special-route opens, 10 regular-route opens, and 28 dangling wires |
-| Calibre DRC | E0 had 57,745 results (208,873 counting occurrences). E2 had 71,988 (275,672 counting occurrences) |
-| Calibre LVS | E0 and E2 returned NOT COMPARED. The E0 extraction recognized top-level pins but produced zero devices and reported `Nothing in layout` |
+| Calibre DRC | E0 had 57,745 results (208,873 counting occurrences), E1 had 61,026 (249,612), and E2 had 71,988 (275,672) |
+| Calibre LVS | All three returned NOT COMPARED. The E0 extraction recognized top-level pins but produced zero devices and reported `Nothing in layout` |
 
 The Calibre DRC totals are from the course PDK deck with its default switches.
 The Calibre LVS deck also returned `Nothing in layout` for the standalone
@@ -62,9 +66,9 @@ The Calibre LVS deck also returned `Nothing in layout` for the standalone
 unavailable for a second comparison because its LVS license checkout failed.
 This reproduces the extraction failure outside the Butterfly layout. A
 working cell-level extraction setup is needed before interpreting Butterfly
-LVS differences. Routed designs and STA reports are in `build/physical_e0/`
-and `build/physical_e2/`. E0's first completed Calibre logs and reports are in
-`build/calibre_e0_preview/`. E2's Calibre reports are in `build/physical_e2/`.
+LVS differences. Routed designs are in `build/physical_e0/`,
+`build/physical_e1_recovery/` and `build/physical_e2/`. E0's first completed
+Calibre logs and reports are in `build/calibre_e0_preview/`.
 
 An E0 power-grid experiment snapped stripes to the routing grid, adjusted the
 M5 stripe geometry and restricted special routing jogs. Innovus reported 20

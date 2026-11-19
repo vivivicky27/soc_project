@@ -182,3 +182,6 @@ The [implementation report](IMPLEMENTATION_RESULTS.md) records the completed
 ECS runs. On a busy ECS host, run the Innovus variants serially. The successful
 E0/E2 runs used one Innovus worker, single-threaded compression
 (`PIGZ=-p1`), two pinned CPUs and a 128 MiB hard stack limit.
+`make route-e1-recovery-hy3281` runs E1's low-memory placement fallback and
+uses `build/physical_e1_recovery/`. Pass that directory to the signoff script
+for the recovery layout.
