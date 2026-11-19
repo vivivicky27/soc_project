@@ -136,3 +136,14 @@ make sim-gate  # 用 Python 向量验证综合后的标准单元网表
 还没有做专用模约减优化或内部流水线。基础版已配置 ASIC 综合流程；
 布局布线、最终时序签核和功耗分析尚未完成。
 本模块不包含完整 NTT 的存储、旋转因子表和调度；这些仍由外部软件负责。
+
+## E0 and E1 RTL variants (hy3281)
+
+The independent `butterfly_e0_hy3281` and `butterfly_e1_hy3281` modules are in
+`rtl/`. Both accept a valid input on every clock and keep `in_ready` high.
+E0 produces its registered result on the accepting edge. E1 produces its result
+three rising edges after the accepting edge and can sustain one result per cycle.
+
+Run their VCS testbenches with `make sim-hy3281`, or run
+`make sim-e0-hy3281` and `make sim-e1-hy3281` individually. Outputs are under
+`build/e0_hy3281/` and `build/e1_hy3281/`.

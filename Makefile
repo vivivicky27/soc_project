@@ -38,3 +38,11 @@ sim:
 
 clean:
 	rm -rf build
+
+.PHONY: sim-hy3281 sim-e0-hy3281 sim-e1-hy3281
+sim-hy3281: sim-e0-hy3281 sim-e1-hy3281
+
+sim-e0-hy3281 sim-e1-hy3281: sim-%-hy3281:
+	mkdir -p build/$*_hy3281
+	cd build/$*_hy3281 && vcs -full64 -sverilog -top tb_butterfly_$*_hy3281 ../../rtl/butterfly_$*_hy3281.sv ../../tb/tb_butterfly_$*_hy3281.sv -o simv -l compile.log
+	cd build/$*_hy3281 && ./simv -l simulation.log
