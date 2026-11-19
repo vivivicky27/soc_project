@@ -39,6 +39,40 @@ and the same I/O timing assumptions for all three designs.
 E2 used 16.2% more mapped area than E1 and improved setup slack by 0.53 ns
 under those constraints. The measurements precede placement and routing.
 
+## Routed implementations
+
+Innovus exported DEF, GDS and physical Verilog for E0 and E2. The timing view
+uses TT cell timing and the course worst-RC Quantus model.
+
+| Version | Post-route cell area (µm²) | Setup WNS (ns) | Hold WNS (ns) | Violating paths |
+|---|---:|---:|---:|---:|
+| E0 | 507.514 | +4.407 | +0.011 | 0 |
+| E2 | 880.917 | +7.633 | +0.020 | 0 |
+
+| Physical check | Result |
+|---|---|
+| Innovus full-design DRC | E0 and E2 each reached the 1,000-marker report limit. The listed E0 markers were M5 minimum-step violations on power routing |
+| Innovus connectivity | 356 disconnected terminals, 6 special-route opens, 10 regular-route opens, and 28 dangling wires |
+| Calibre DRC | E0 had 57,745 results (208,873 counting occurrences). E2 had 71,988 (275,672 counting occurrences) |
+| Calibre LVS | E0 and E2 returned NOT COMPARED. The E0 extraction recognized top-level pins but produced zero devices and reported `Nothing in layout` |
+
+The Calibre DRC totals are from the course PDK deck with its default switches.
+The Calibre LVS deck also returned `Nothing in layout` for the standalone
+`INVD12BWP16P90` supplied in the PDK standard-cell GDS. Pegasus was
+unavailable for a second comparison because its LVS license checkout failed.
+This reproduces the extraction failure outside the Butterfly layout. A
+working cell-level extraction setup is needed before interpreting Butterfly
+LVS differences. Routed designs and STA reports are in `build/physical_e0/`
+and `build/physical_e2/`. E0's first completed Calibre logs and reports are in
+`build/calibre_e0_preview/`. E2's Calibre reports are in `build/physical_e2/`.
+
+An E0 power-grid experiment snapped stripes to the routing grid, adjusted the
+M5 stripe geometry and restricted special routing jogs. Innovus reported 20
+DRC markers (16 spacing, two shorts and two minimum-cut). The 356 disconnected
+terminals remained, and special-route opens increased from six to seven.
+The experiment is isolated under `build/pg_e0_probe/` and is reproducible with
+`make probe-pg-e0-hy3281`.
+
 ## Reproduction
 
 See the [project README](README.md) for the VCS, Design Compiler, Innovus

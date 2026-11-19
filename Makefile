@@ -66,3 +66,10 @@ route-e0-hy3281 route-e1-hy3281 route-e2-hy3281: route-%-hy3281:
 	mkdir -p build/physical_$*
 	cd build/physical_$* && BUTTERFLY_NETLIST=../synth_$*/netlist/butterfly_$*_hy3281_mapped.v innovus -stylus -no_gui -files ../../physical/run.tcl -log innovus
 	test -s build/physical_$*/routed.gds
+
+.PHONY: probe-pg-e0-hy3281
+probe-pg-e0-hy3281:
+	test -d build/physical_e0/routed
+	mkdir -p build/pg_e0_probe
+	cd build/pg_e0_probe && innovus -stylus -no_gui -files ../../physical/pg_probe.tcl -log innovus
+	test -s build/pg_e0_probe/candidate.def

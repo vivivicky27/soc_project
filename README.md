@@ -177,3 +177,8 @@ build directory holds its routed database, DEF, netlist, GDS, setup and hold
 reports, and Innovus DRC and connectivity reports. The two Calibre commands
 can be repeated for E1 and E2. Inspect the rule counts and LVS comparison in
 `DRC.rep` and `lvs.rep` before reporting signoff.
+
+The [implementation report](IMPLEMENTATION_RESULTS.md) records the completed
+ECS runs. On a busy ECS host, run the Innovus variants serially. The successful
+E0/E2 runs used one Innovus worker, single-threaded compression
+(`PIGZ=-p1`), two pinned CPUs and a 128 MiB hard stack limit.

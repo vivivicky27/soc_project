@@ -1,6 +1,7 @@
 """Run the course TSMC16 Calibre decks against an Innovus output directory."""
 
 import argparse
+import os
 from pathlib import Path
 import subprocess
 
@@ -52,9 +53,13 @@ def main():
                 b'INCLUDE ./DFM/lod_measure.encrypt':
                     b'INCLUDE "' + str(LVS.parent / "DFM/lod_measure.encrypt").encode() + b'"',
             })
+        # The ECS login shell can select a Calibre OA version for GUI use.
+        # These decks read GDS and SPICE, so let Calibre use its bundled default.
+        calibre_env = os.environ.copy()
+        calibre_env.pop("MGC_FDI_OA_VERSION", None)
         subprocess.run(
             ["calibre", f"-{args.mode}", "-hier", str(deck)],
-            cwd=work, stdout=log, stderr=subprocess.STDOUT, check=True,
+            cwd=work, env=calibre_env, stdout=log, stderr=subprocess.STDOUT, check=True,
         )
     report = work / ("DRC.rep" if args.mode == "drc" else "lvs.rep")
     if not report.stat().st_size:
@@ -63,4 +68,11 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except subprocess.CalledProcessError as error:
+        raise SystemExit(
+            f"{error.cmd[0]} exited with {error.returncode}. "
+            "Inspect the corresponding calibre_drc.log or calibre_lvs.log "
+            "and any report written in the build directory."
+        ) from error
