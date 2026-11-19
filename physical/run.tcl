@@ -60,25 +60,26 @@ proc implement {} {
     add_stripes -nets {VDD VSS} -layer M5 -direction vertical -area $core -width 0.20 -spacing 0.50 -set_to_set_distance 18 -start_from left -start_offset 9
     route_special -connect corePin -nets {VDD VSS}
 
-    place_design
+    place_design -no_pre_place_opt
     set_db cts_use_inverters true
-    ccopt_design
+    clock_design
     foreach supply {VDD VSS} {
         connect_global_net $supply -type pg_pin -pin_base_name $supply -all
     }
     set_db timing_analysis_type ocv
     set_db timing_analysis_cppr both
+    set_db route_design_with_timing_driven false
     route_design
-    time_design -post_route -report_dir setup
-    time_design -post_route -hold -report_dir hold
+    write_def -floorplan -netlist -routing routed.def
+    write_netlist routed.v
+    write_netlist routed_pg.v -phys -export_top_pg_nets
+    write_stream routed.gds -map_file $apr/N16ADFP_APR_Innovus_Gdsout_11M.10a.map -merge [list $pdk_root/stdcell/GDS/N16ADFP_StdCell.gds] -unit 1000 -mode ALL
     check_drc -out_file drc.rpt
     check_connectivity -out_file connectivity.rpt
     report_area > area.rpt
     write_db routed
-    write_def -floorplan -netlist -routing routed.def
-    write_netlist routed.v
-    write_netlist -include_pg_ports routed_pg.v
-    streamOut routed.gds -mapFile $apr/N16ADFP_APR_Innovus_Gdsout_11M.10a.map -merge [list $pdk_root/stdcell/GDS/N16ADFP_StdCell.gds] -units 1000 -mode ALL
+    time_design -post_route -report_dir setup
+    time_design -post_route -hold -report_dir hold
 }
 
 if {[catch {implement} message options]} {

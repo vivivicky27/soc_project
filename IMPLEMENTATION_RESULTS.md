@@ -14,7 +14,7 @@ NTT schedule run in Python. VCS executes the Butterfly calls in co-simulation.
 | Original RTL simulation | 10,068 transactions passed |
 | Original RTL and mapped-netlist comparison | 10,065 Python reference vectors passed in each simulation |
 | E0 and E1 standalone VCS | Passed |
-| E2 standalone VCS | Passed |
+| E2 standalone VCS | Passed. It completed all 822 accepted requests across 1,013 checked cycles |
 | Full NTT with E1 in VCS | All 256 output coefficients matched after 896 RTL transactions |
 | Full NTT with E2 in VCS | All 256 output coefficients matched after 896 RTL transactions |
 | ML-KEM-768 and AES-GCM with E1 or E2 | 15 transforms and 13,440 RTL transactions per demonstration. Shared secrets matched, plaintext recovered, and the modified tag was rejected |
